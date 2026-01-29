@@ -1,6 +1,64 @@
+Metadata-Version: 2.4
+Name: gemini-claude-databricks
+Version: 0.2.0
+Summary: AI Assistant for Databricks using Google Gemini and Anthropic Claude
+Home-page: https://github.com/gustcol/gemini-claude-databricks
+Author: Guxxxta / Gustcol
+Author-email: Guxxxta / Gustcol <gustcol@gmail.com>
+Maintainer-email: Guxxxta / Gustcol <gustcol@gmail.com>
+License: MIT
+Project-URL: Homepage, https://github.com/gustcol/gemini-claude-databricks
+Project-URL: Documentation, https://github.com/gustcol/gemini-claude-databricks#readme
+Project-URL: Repository, https://github.com/gustcol/gemini-claude-databricks
+Project-URL: Issues, https://github.com/gustcol/gemini-claude-databricks/issues
+Keywords: databricks,gemini,claude,ai,llm,spark,delta-lake,unity-catalog,data-engineering,anthropic,google-ai
+Classifier: Development Status :: 4 - Beta
+Classifier: Intended Audience :: Developers
+Classifier: Intended Audience :: Science/Research
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: OS Independent
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.8
+Classifier: Programming Language :: Python :: 3.9
+Classifier: Programming Language :: Python :: 3.10
+Classifier: Programming Language :: Python :: 3.11
+Classifier: Programming Language :: Python :: 3.12
+Classifier: Topic :: Scientific/Engineering :: Artificial Intelligence
+Classifier: Topic :: Software Development :: Libraries :: Python Modules
+Requires-Python: >=3.8
+Description-Content-Type: text/markdown
+License-File: LICENSE
+Requires-Dist: numpy>=1.20.0
+Provides-Extra: gemini
+Requires-Dist: google-generativeai>=0.3.0; extra == "gemini"
+Provides-Extra: claude
+Requires-Dist: anthropic>=0.18.0; extra == "claude"
+Provides-Extra: all
+Requires-Dist: google-generativeai>=0.3.0; extra == "all"
+Requires-Dist: anthropic>=0.18.0; extra == "all"
+Provides-Extra: spark
+Requires-Dist: pyspark>=3.4.0; extra == "spark"
+Provides-Extra: mlflow
+Requires-Dist: mlflow>=2.0.0; extra == "mlflow"
+Provides-Extra: dev
+Requires-Dist: pytest>=7.0.0; extra == "dev"
+Requires-Dist: pytest-cov>=4.0.0; extra == "dev"
+Requires-Dist: pytest-asyncio>=0.21.0; extra == "dev"
+Requires-Dist: black>=23.0.0; extra == "dev"
+Requires-Dist: isort>=5.12.0; extra == "dev"
+Requires-Dist: ruff>=0.1.0; extra == "dev"
+Provides-Extra: full
+Requires-Dist: google-generativeai>=0.3.0; extra == "full"
+Requires-Dist: anthropic>=0.18.0; extra == "full"
+Requires-Dist: pyspark>=3.4.0; extra == "full"
+Requires-Dist: mlflow>=2.0.0; extra == "full"
+Dynamic: author
+Dynamic: home-page
+Dynamic: license-file
+Dynamic: requires-python
+
 # Gemini & Claude AI Integration for Databricks
 
-[![PyPI version](https://badge.fury.io/py/gemini-claude-databricks.svg)](https://badge.fury.io/py/gemini-claude-databricks)
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Databricks](https://img.shields.io/badge/Databricks-Ready-orange.svg)](https://databricks.com/)
@@ -285,69 +343,46 @@ flowchart LR
     style G fill:#c8e6c9
 ```
 
-### Option 1: Install from PyPI
-```bash
-# Install with all AI providers (recommended)
-pip install gemini-claude-databricks[all]
-
-# Install with only Gemini
-pip install gemini-claude-databricks[gemini]
-
-# Install with only Claude
-pip install gemini-claude-databricks[claude]
-
-# Install with Spark and MLflow support
-pip install gemini-claude-databricks[full]
-```
-
-### Option 2: Install in Databricks notebook
+### Option 1: Install from PyPI (when published)
 ```python
-%pip install gemini-claude-databricks[all]
+%pip install gemini-claude-databricks
 ```
 
-### Option 3: Clone and install locally (development)
+### Option 2: Install directly in Databricks notebook
+```python
+%pip install google-generativeai anthropic
+
+# Copy the ai_assistant module to your workspace or DBFS
+```
+
+### Option 3: Clone and install locally
 ```bash
 git clone https://github.com/gustcol/gemini-claude-databricks.git
 cd gemini-claude-databricks
-pip install -e ".[dev]"
+pip install -e .
 ```
 
 ### Dependencies
 
 ```mermaid
 graph TD
-    A[gemini-claude-databricks] --> B[numpy >= 1.20.0]
-    A -.->|gemini| C[google-generativeai >= 0.3.0]
-    A -.->|claude| D[anthropic >= 0.18.0]
-    A -.->|spark| E[pyspark >= 3.4.0]
-    A -.->|mlflow| F[mlflow >= 2.0.0]
-    A -.->|dev| G[pytest, ruff, black]
+    A[gemini-claude-databricks] --> B[google-generativeai >= 0.3.0]
+    A --> C[anthropic >= 0.18.0]
+    A -.->|optional| D[pyspark >= 3.4.0]
+    A -.->|optional| E[mlflow >= 2.0.0]
+    A -.->|dev| F[pytest >= 7.0.0]
+    A -.->|dev| G[ty - Type Checker]
 
     style A fill:#fff3e0
-    style B fill:#e3f2fd
-    style C fill:#e8f5e9
-    style D fill:#fce4ec
+    style B fill:#e8f5e9
+    style C fill:#fce4ec
 ```
-
-### Installation Options
-
-| Extra | Command | Includes |
-|-------|---------|----------|
-| `[gemini]` | `pip install gemini-claude-databricks[gemini]` | Google Gemini SDK |
-| `[claude]` | `pip install gemini-claude-databricks[claude]` | Anthropic Claude SDK |
-| `[all]` | `pip install gemini-claude-databricks[all]` | Both AI providers |
-| `[spark]` | `pip install gemini-claude-databricks[spark]` | PySpark support |
-| `[mlflow]` | `pip install gemini-claude-databricks[mlflow]` | MLflow tracking |
-| `[full]` | `pip install gemini-claude-databricks[full]` | Everything |
-| `[dev]` | `pip install -e ".[dev]"` | Development tools |
 
 ### Development Setup
 
 ```bash
-# Clone and install for development
-git clone https://github.com/gustcol/gemini-claude-databricks.git
-cd gemini-claude-databricks
-pip install -e ".[dev,all]"
+# Install development dependencies
+pip install -e ".[dev]"
 
 # Run type checking with ty (Astral's type checker)
 pip install ty
@@ -355,10 +390,6 @@ ty check ai_assistant/
 
 # Run tests
 pytest tests/ -v
-
-# Format code
-black ai_assistant/
-ruff check ai_assistant/
 ```
 
 > **Note**: Type checking with `ty` will show errors for optional dependencies (`google.generativeai`, `anthropic`, `mlflow`, `IPython`) when they are not installed. These are expected and can be safely ignored.

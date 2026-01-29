@@ -1,0 +1,119 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "gemini-claude-databricks"
+version = "0.2.0"
+description = "AI Assistant for Databricks using Google Gemini and Anthropic Claude"
+readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [
+    {name = "Guxxxta / Gustcol", email = "gustcol@gmail.com"}
+]
+maintainers = [
+    {name = "Guxxxta / Gustcol", email = "gustcol@gmail.com"}
+]
+keywords = [
+    "databricks",
+    "gemini",
+    "claude",
+    "ai",
+    "llm",
+    "spark",
+    "delta-lake",
+    "unity-catalog",
+    "data-engineering",
+    "anthropic",
+    "google-ai",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+requires-python = ">=3.8"
+dependencies = [
+    "numpy>=1.20.0",
+]
+
+[project.optional-dependencies]
+gemini = ["google-generativeai>=0.3.0"]
+claude = ["anthropic>=0.18.0"]
+all = [
+    "google-generativeai>=0.3.0",
+    "anthropic>=0.18.0",
+]
+spark = ["pyspark>=3.4.0"]
+mlflow = ["mlflow>=2.0.0"]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-cov>=4.0.0",
+    "pytest-asyncio>=0.21.0",
+    "black>=23.0.0",
+    "isort>=5.12.0",
+    "ruff>=0.1.0",
+]
+full = [
+    "google-generativeai>=0.3.0",
+    "anthropic>=0.18.0",
+    "pyspark>=3.4.0",
+    "mlflow>=2.0.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/gustcol/gemini-claude-databricks"
+Documentation = "https://github.com/gustcol/gemini-claude-databricks#readme"
+Repository = "https://github.com/gustcol/gemini-claude-databricks"
+Issues = "https://github.com/gustcol/gemini-claude-databricks/issues"
+
+[tool.setuptools]
+packages = ["ai_assistant", "ai_assistant.agents", "ai_assistant.prompts"]
+include-package-data = true
+
+[tool.setuptools.package-data]
+ai_assistant = ["py.typed"]
+
+[tool.black]
+line-length = 100
+target-version = ['py38', 'py39', 'py310', 'py311', 'py312']
+include = '\.pyi?$'
+exclude = '''
+/(
+    \.git
+    | \.hg
+    | \.mypy_cache
+    | \.tox
+    | \.venv
+    | _build
+    | buck-out
+    | build
+    | dist
+)/
+'''
+
+[tool.isort]
+profile = "black"
+line_length = 100
+
+[tool.ruff]
+line-length = 100
+target-version = "py38"
+select = ["E", "F", "W", "I", "N", "UP", "B", "C4"]
+ignore = ["E501"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_functions = ["test_*"]
+addopts = "-v --tb=short"
