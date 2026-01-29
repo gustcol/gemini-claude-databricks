@@ -23,6 +23,16 @@ A comprehensive Python library that enables seamless integration of **Google's G
 - [Usage Examples](#usage-examples)
 - [Spark Integration](#spark-integration)
 - [API Reference](#api-reference)
+- [Semantic Cache](#semantic-cache)
+- [RAG (Retrieval Augmented Generation)](#rag-retrieval-augmented-generation)
+- [AI Agents](#ai-agents)
+- [MLflow Tracking](#mlflow-tracking)
+- [Prompt Templates](#prompt-templates)
+- [Data Quality](#data-quality)
+- [Magic Commands](#magic-commands)
+- [Documentation Generator](#documentation-generator)
+- [dbt Integration](#dbt-integration)
+- [Security Guardrails](#security-guardrails)
 - [Security Best Practices](#security-best-practices)
 - [Troubleshooting](#troubleshooting)
 - [Pipeline Generation](#pipeline-generation)
@@ -202,15 +212,29 @@ mindmap
       Secret Management
       Spark Integration
       Delta Lake Support
+      Unity Catalog
     AI Capabilities
       Code Generation
       Query Optimization
       Error Explanation
       DataFrame Analysis
+      Data Quality
+    Advanced Features
+      Semantic Cache
+      RAG Pipeline
+      AI Agents
+      dbt Integration
     Developer Experience
       Streaming Responses
       Conversation Memory
       Cost Tracking
+      Magic Commands
+      Prompt Templates
+    Enterprise
+      Security Guardrails
+      PII Detection
+      Rate Limiting
+      Audit Logging
 ```
 
 ### Detailed Features
@@ -228,6 +252,16 @@ mindmap
 | **Query Optimization** | SQL optimization suggestions | ✅ | ✅ |
 | **Batch Processing** | Process data at scale with UDFs | ✅ | ✅ |
 | **Cost Tracking** | Monitor token usage and costs | ✅ | ✅ |
+| **Semantic Cache** | Cache responses by semantic similarity | ✅ | ✅ |
+| **RAG Pipeline** | Document-augmented generation | ✅ | ✅ |
+| **AI Agents** | Autonomous task completion | ✅ | ✅ |
+| **MLflow Tracking** | Experiment tracking & A/B tests | ✅ | ✅ |
+| **Prompt Templates** | Reusable, versioned prompts | ✅ | ✅ |
+| **Data Quality** | DLT/GE expectation generation | ✅ | ✅ |
+| **Magic Commands** | IPython notebook shortcuts | ✅ | ✅ |
+| **Docs Generator** | Auto documentation generation | ✅ | ✅ |
+| **dbt Integration** | DLT ↔ dbt conversion | ✅ | ✅ |
+| **Security Guardrails** | SQL/PII validation, rate limiting | ✅ | ✅ |
 
 ---
 
@@ -276,13 +310,30 @@ graph TD
     A[gemini-claude-databricks] --> B[google-generativeai >= 0.3.0]
     A --> C[anthropic >= 0.18.0]
     A -.->|optional| D[pyspark >= 3.4.0]
-    A -.->|dev| E[pytest >= 7.0.0]
-    A -.->|dev| F[black >= 23.0.0]
+    A -.->|optional| E[mlflow >= 2.0.0]
+    A -.->|dev| F[pytest >= 7.0.0]
+    A -.->|dev| G[ty - Type Checker]
 
     style A fill:#fff3e0
     style B fill:#e8f5e9
     style C fill:#fce4ec
 ```
+
+### Development Setup
+
+```bash
+# Install development dependencies
+pip install -e ".[dev]"
+
+# Run type checking with ty (Astral's type checker)
+pip install ty
+ty check ai_assistant/
+
+# Run tests
+pytest tests/ -v
+```
+
+> **Note**: Type checking with `ty` will show errors for optional dependencies (`google.generativeai`, `anthropic`, `mlflow`, `IPython`) when they are not installed. These are expected and can be safely ignored.
 
 ---
 
@@ -430,24 +481,54 @@ graph LR
 ```mermaid
 graph TB
     subgraph Package["ai_assistant"]
-        Init["__init__.py<br/>Package exports"]
-        Core["core.py<br/>AIAssistant class"]
-        Gemini["gemini_client.py<br/>GeminiClient class"]
-        Claude["claude_client.py<br/>ClaudeClient class"]
-        Config["config.py<br/>Configuration classes"]
-        Exceptions["exceptions.py<br/>Custom exceptions"]
-        Spark["spark_utils.py<br/>Spark utilities"]
+        subgraph Core["Core Modules"]
+            Init["__init__.py"]
+            CoreMod["core.py"]
+            Gemini["gemini_client.py"]
+            Claude["claude_client.py"]
+            Config["config.py"]
+        end
+
+        subgraph Data["Data Integration"]
+            Spark["spark_utils.py"]
+            Pipelines["pipelines.py"]
+            UC["unity_catalog.py"]
+            DQ["data_quality.py"]
+        end
+
+        subgraph Advanced["Advanced Features"]
+            Cache["cache.py"]
+            RAG["rag.py"]
+            Agents["agents/"]
+            Track["tracking.py"]
+        end
+
+        subgraph DevEx["Developer Experience"]
+            Magic["magic_commands.py"]
+            Prompts["prompts/"]
+            Docs["docs_generator.py"]
+            DBT["dbt_integration.py"]
+        end
+
+        subgraph Security["Security"]
+            Guards["guardrails.py"]
+        end
     end
 
-    Init --> Core
-    Core --> Gemini
-    Core --> Claude
-    Core --> Config
-    Gemini --> Exceptions
-    Claude --> Exceptions
-    Core --> Spark
+    CoreMod --> Gemini
+    CoreMod --> Claude
+    CoreMod --> Config
+    CoreMod --> Cache
+    CoreMod --> Guards
+    Cache --> RAG
+    Agents --> CoreMod
 
     style Package fill:#e3f2fd
+    style Core fill:#e8f5e9
+    style Data fill:#fff3e0
+    style Advanced fill:#fce4ec
+    style DevEx fill:#f3e5f5
+    style Security fill:#ffebee
 ```
 
 ### Class Relationships
@@ -727,6 +808,938 @@ See [API Documentation](docs/api.md) for complete reference.
 
 ---
 
+## Semantic Cache
+
+Reduce costs and latency by caching AI responses based on semantic similarity.
+
+### Cache Architecture
+
+```mermaid
+flowchart LR
+    subgraph Input["📥 Request"]
+        Prompt["User Prompt"]
+    end
+
+    subgraph Cache["💾 Semantic Cache"]
+        Embed["Embedding Provider"]
+        Similar["Similarity Search"]
+        LRU["LRU Eviction"]
+        SQLite["SQLite Persistence"]
+    end
+
+    subgraph Decision["🔀 Cache Decision"]
+        Hit{{"Cache Hit?"}}
+    end
+
+    subgraph Output["📤 Response"]
+        Cached["Cached Response"]
+        Fresh["Fresh API Call"]
+    end
+
+    Prompt --> Embed
+    Embed --> Similar
+    Similar --> Hit
+    Hit -->|Yes| Cached
+    Hit -->|No| Fresh
+    Fresh --> LRU
+    LRU --> SQLite
+
+    style Cache fill:#e8f5e9
+    style Decision fill:#fff3e0
+```
+
+### Using the Cache
+
+```python
+from ai_assistant import create_cache, CachedAIClient, AIAssistant
+
+assistant = AIAssistant(secret_scope="ai-keys")
+
+# Create a semantic cache
+cache = create_cache(
+    backend_type="memory",       # or "sqlite" for persistence
+    max_size=1000,               # Maximum cached entries
+    similarity_threshold=0.95,   # Semantic similarity threshold
+    ttl_seconds=3600,            # Cache TTL (1 hour)
+    db_path="/dbfs/cache/ai_cache.db"  # For sqlite backend
+)
+
+# Wrap your AI client with caching
+cached_gemini = CachedAIClient(
+    client=assistant.gemini,
+    cache=cache
+)
+
+# First call - hits API
+response1 = cached_gemini.generate("What is Apache Spark?")
+
+# Similar prompt - uses cache (faster, no cost)
+response2 = cached_gemini.generate("Explain Apache Spark")
+
+# Get cache statistics
+stats = cached_gemini.get_cache_stats()
+print(f"Cache hits: {stats['hits']}, Misses: {stats['misses']}")
+print(f"Hit rate: {stats['hit_rate']:.2%}")
+```
+
+### Cache Statistics
+
+| Metric | Description |
+|--------|-------------|
+| `hits` | Number of cache hits |
+| `misses` | Number of cache misses |
+| `hit_rate` | Percentage of requests served from cache |
+| `total_entries` | Current number of cached entries |
+| `estimated_savings` | Estimated cost savings |
+
+---
+
+## RAG (Retrieval Augmented Generation)
+
+Enhance AI responses with context from your documents and Unity Catalog metadata.
+
+### RAG Architecture
+
+```mermaid
+flowchart TB
+    subgraph Input["📄 Documents"]
+        Docs["Documents / Code"]
+        UC["Unity Catalog Tables"]
+    end
+
+    subgraph Processing["⚙️ RAG Pipeline"]
+        Chunk["Document Chunker"]
+        Embed["Embedding Generator"]
+        Store["Vector Store"]
+        Retrieve["Context Retrieval"]
+    end
+
+    subgraph Generation["🤖 AI Generation"]
+        Context["Augmented Context"]
+        LLM["AI Model"]
+        Response["Enhanced Response"]
+    end
+
+    Docs --> Chunk
+    UC --> Chunk
+    Chunk --> Embed
+    Embed --> Store
+    Store --> Retrieve
+    Retrieve --> Context
+    Context --> LLM
+    LLM --> Response
+
+    style Input fill:#e3f2fd
+    style Processing fill:#fff3e0
+    style Generation fill:#e8f5e9
+```
+
+### Using RAG
+
+```python
+from ai_assistant import create_rag_pipeline, Document, AIAssistant
+
+assistant = AIAssistant(secret_scope="ai-keys")
+
+# Create RAG pipeline
+rag = create_rag_pipeline(
+    spark=spark,
+    catalog="analytics",
+    chunk_size=500,
+    chunk_overlap=50
+)
+
+# Add documents
+docs = [
+    Document(id="delta_docs", content="Delta Lake documentation...", metadata={"source": "delta_docs.md"}),
+    Document(id="spark_guide", content="Spark optimization guide...", metadata={"source": "spark_guide.md"}),
+]
+rag.add_documents(docs)
+
+# Query with enhanced context (Unity Catalog context is built-in)
+response = rag.query(
+    "How do I optimize Delta Lake tables for my sales data?",
+    ai_client=assistant.gemini,
+    include_uc_context=True
+)
+print(response)
+```
+
+### Chunking Strategies
+
+| Strategy | Best For | Description |
+|----------|----------|-------------|
+| `FIXED_SIZE` | General documents | Fixed character count chunks |
+| `SENTENCE` | Prose text | Split on sentence boundaries |
+| `PARAGRAPH` | Structured docs | Split on paragraph breaks |
+| `SEMANTIC` | Technical docs | AI-driven semantic splitting |
+
+---
+
+## AI Agents
+
+Autonomous agents that can analyze data, generate pipelines, and perform complex tasks.
+
+### Agent Architecture
+
+```mermaid
+flowchart TB
+    subgraph User["👤 User"]
+        Task["Task Request"]
+    end
+
+    subgraph Agent["🤖 ReAct Agent"]
+        Think["Thought"]
+        Act["Action"]
+        Observe["Observation"]
+        Loop{{"Continue?"}}
+    end
+
+    subgraph Tools["🛠️ Tool Registry"]
+        SQL["SQL Executor"]
+        Profile["Data Profiler"]
+        DDL["DDL Generator"]
+        Pipeline["Pipeline Generator"]
+    end
+
+    subgraph Output["📤 Result"]
+        Answer["Final Answer"]
+    end
+
+    Task --> Think
+    Think --> Act
+    Act --> Tools
+    Tools --> Observe
+    Observe --> Loop
+    Loop -->|Yes| Think
+    Loop -->|No| Answer
+
+    style Agent fill:#fff3e0
+    style Tools fill:#e3f2fd
+```
+
+### Using Data Analyst Agent
+
+```python
+from ai_assistant import DataAnalystAgent, AIAssistant
+
+assistant = AIAssistant(secret_scope="ai-keys")
+
+# Create data analyst agent
+analyst = DataAnalystAgent(
+    ai_client=assistant.claude,
+    spark=spark
+)
+
+# Analyze a table
+analysis = analyst.analyze_table("analytics.sales.transactions")
+print(analysis)
+
+# Ask complex questions (agent uses tools automatically)
+answer = analyst.answer_question(
+    "What are the top 10 customers by revenue and how has their purchasing "
+    "pattern changed over the last 6 months?"
+)
+print(answer)
+
+# Profile data quality
+profile = analyst.profile_data("analytics.sales.transactions")
+print(profile)
+```
+
+### Using Data Engineer Agent
+
+```python
+from ai_assistant import DataEngineerAgent
+
+# Create data engineer agent
+engineer = DataEngineerAgent(
+    ai_client=assistant.claude,
+    spark=spark
+)
+
+# Generate table DDL
+ddl = engineer.create_table(
+    "Create a fact table for order transactions with customer, product, "
+    "and time dimensions. Include partitioning and Z-ordering."
+)
+print(ddl)
+
+# Generate DLT pipeline
+pipeline = engineer.generate_pipeline(
+    "Create a medallion architecture for processing IoT sensor data "
+    "with data quality expectations."
+)
+print(pipeline)
+
+# Optimize a query
+optimized = engineer.optimize_query(
+    "SELECT * FROM orders JOIN customers ON orders.customer_id = customers.id"
+)
+print(optimized)
+```
+
+### Available Tools
+
+| Tool | Description | Agent |
+|------|-------------|-------|
+| `SQLExecutorTool` | Execute SQL queries | Both |
+| `TableInfoTool` | Get table schema/metadata | Both |
+| `DataProfilerTool` | Profile data quality | Analyst |
+| `DDLGeneratorTool` | Generate CREATE statements | Engineer |
+| `PipelineGeneratorTool` | Generate DLT/ETL pipelines | Engineer |
+| `QueryOptimizerTool` | Optimize SQL queries | Engineer |
+
+---
+
+## MLflow Tracking
+
+Track AI calls, measure performance, and run A/B experiments.
+
+### Tracking Architecture
+
+```mermaid
+flowchart LR
+    subgraph Calls["🔄 AI Calls"]
+        Call1["Call 1"]
+        Call2["Call 2"]
+        CallN["Call N"]
+    end
+
+    subgraph Tracker["📊 AI Tracker"]
+        Metrics["Metrics Collection"]
+        Stats["Statistics"]
+        Export["Export"]
+    end
+
+    subgraph MLflow["📈 MLflow"]
+        Experiment["Experiment"]
+        Runs["Runs"]
+        Dashboard["Dashboard"]
+    end
+
+    Call1 --> Metrics
+    Call2 --> Metrics
+    CallN --> Metrics
+    Metrics --> Stats
+    Metrics --> MLflow
+    Stats --> Export
+    MLflow --> Dashboard
+
+    style Tracker fill:#fff3e0
+    style MLflow fill:#e8f5e9
+```
+
+### Using Tracking
+
+```python
+from ai_assistant import create_tracker, TrackedAIClient, AIAssistant
+
+assistant = AIAssistant(secret_scope="ai-keys")
+
+# Create tracker with MLflow integration
+tracker = create_tracker(
+    experiment_name="ai_assistant_experiment",
+    enable_mlflow=True
+)
+
+# Wrap client with tracking
+tracked_client = TrackedAIClient(
+    client=assistant.gemini,
+    tracker=tracker,
+    cost_per_1k_input=0.00125,
+    cost_per_1k_output=0.005
+)
+
+# Use normally - all calls are tracked
+response = tracked_client.generate("What is Delta Lake?")
+
+# Get statistics
+stats = tracker.get_stats()
+print(f"Total calls: {stats['total_calls']}")
+print(f"Total cost: ${stats['total_cost']:.4f}")
+print(f"Avg latency: {stats['avg_latency_ms']:.2f}ms")
+
+# Export call history
+calls = tracker.export_calls()
+```
+
+### A/B Experiments
+
+```python
+from ai_assistant import ABExperiment
+
+# Compare Gemini vs Claude
+experiment = ABExperiment(
+    name="gemini_vs_claude",
+    client_a=assistant.gemini,
+    client_b=assistant.claude,
+    split_ratio=0.5
+)
+
+# Run experiment
+for prompt in test_prompts:
+    response = experiment.run(prompt)
+
+# Get results
+results = experiment.get_results()
+print(f"Model A calls: {results['model_a_calls']}")
+print(f"Model B calls: {results['model_b_calls']}")
+print(f"Model A avg latency: {results['model_a_avg_latency']:.2f}ms")
+print(f"Model B avg latency: {results['model_b_avg_latency']:.2f}ms")
+```
+
+---
+
+## Prompt Templates
+
+Reusable, versioned prompt templates for consistent AI interactions.
+
+### Template System
+
+```mermaid
+flowchart LR
+    subgraph Library["📚 Prompt Library"]
+        SQL["SQL Optimization"]
+        DDL["DDL Generation"]
+        Pipeline["Pipeline Generation"]
+        Review["Code Review"]
+    end
+
+    subgraph Template["📝 Template"]
+        Vars["Variables"]
+        System["System Instruction"]
+        Examples["Few-shot Examples"]
+    end
+
+    subgraph Output["📤 Formatted Prompt"]
+        Prompt["Final Prompt"]
+    end
+
+    Library --> Template
+    Template --> Prompt
+
+    style Library fill:#e3f2fd
+    style Template fill:#fff3e0
+```
+
+### Using Templates
+
+```python
+from ai_assistant import (
+    PromptTemplate, PromptVariable, PromptLibrary,
+    SQL_OPTIMIZATION_PROMPT, DDL_GENERATION_PROMPT,
+    create_template, get_data_engineering_prompts
+)
+
+# Use built-in template
+prompt = SQL_OPTIMIZATION_PROMPT.render(
+    query="SELECT * FROM orders WHERE customer_id = 123",
+    context="orders table has 500M rows, customer_id is not indexed"
+)
+
+# Generate with formatted prompt
+response = assistant.ask(prompt)
+
+# Get all data engineering prompts
+all_prompts = get_data_engineering_prompts()
+
+# Create custom template
+my_template = PromptTemplate(
+    name="data_analysis",
+    description="Analyze data patterns",
+    template="""
+Analyze the following data from {table_name}:
+
+Schema: {schema}
+Sample: {sample_data}
+
+Provide insights on:
+1. Data quality issues
+2. Patterns and trends
+3. Recommendations
+""",
+    system_instruction="You are a data analysis expert.",
+    variables=[
+        PromptVariable(name="table_name", description="Table name", required=True),
+        PromptVariable(name="schema", description="Table schema", required=True),
+        PromptVariable(name="sample_data", description="Sample data", required=False, default="N/A"),
+    ],
+    version="1.0.0",
+    tags=["analysis", "data-quality"]
+)
+
+# Use template with render method
+prompt = my_template.render(
+    table_name="sales.transactions",
+    schema="id INT, amount DECIMAL, date DATE"
+)
+```
+
+### Built-in Templates
+
+| Template | Purpose | Variables |
+|----------|---------|-----------|
+| `SQL_OPTIMIZATION_PROMPT` | Optimize SQL queries | `query`, `context` |
+| `DDL_GENERATION_PROMPT` | Generate CREATE statements | `description`, `requirements` |
+| `PIPELINE_GENERATION_PROMPT` | Generate DLT/ETL pipelines | `description`, `source`, `target` |
+| `ERROR_EXPLANATION_PROMPT` | Explain errors | `error_message`, `code` |
+| `CODE_REVIEW_PROMPT` | Review code quality | `code`, `language` |
+| `DATA_ANALYSIS_PROMPT` | Analyze datasets | `data`, `questions` |
+
+---
+
+## Data Quality
+
+AI-powered data quality expectation generation for DLT and Great Expectations.
+
+### Data Quality Flow
+
+```mermaid
+flowchart TB
+    subgraph Input["📊 Input"]
+        Schema["Table Schema"]
+        Sample["Sample Data"]
+    end
+
+    subgraph Analyzer["🔍 Data Quality Analyzer"]
+        AI["AI Analysis"]
+        Patterns["Pattern Detection"]
+        Rules["Rule Generation"]
+    end
+
+    subgraph Output["📤 Output"]
+        DLT["DLT Expectations"]
+        GE["Great Expectations"]
+        Report["Quality Report"]
+    end
+
+    Schema --> AI
+    Sample --> AI
+    AI --> Patterns
+    Patterns --> Rules
+    Rules --> DLT
+    Rules --> GE
+    Rules --> Report
+
+    style Analyzer fill:#fff3e0
+    style Output fill:#e8f5e9
+```
+
+### Using Data Quality Analyzer
+
+```python
+from ai_assistant import create_data_quality_analyzer, AIAssistant
+
+assistant = AIAssistant(secret_scope="ai-keys")
+
+# Create analyzer
+analyzer = create_data_quality_analyzer(
+    ai_client=assistant.claude,
+    spark=spark
+)
+
+# Analyze table and generate expectations
+report = analyzer.analyze_table("analytics.sales.transactions")
+print(f"Generated {len(report.expectations)} expectations")
+
+# Generate DLT expectations code
+dlt_code = analyzer.to_dlt_expectations(report.expectations)
+print(dlt_code)
+# Output:
+# @dlt.expect_or_drop("valid_id", "id IS NOT NULL")
+# @dlt.expect("valid_amount", "amount > 0")
+# @dlt.expect("valid_email", "email RLIKE '^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\\.[a-zA-Z0-9-.]+$'")
+
+# Generate Great Expectations suite
+ge_suite = analyzer.to_great_expectations(report.expectations)
+print(ge_suite)
+```
+
+### Expectation Types
+
+| Type | Description | Example |
+|------|-------------|---------|
+| `not_null` | Column cannot be null | `id IS NOT NULL` |
+| `unique` | Values must be unique | `COUNT(DISTINCT id) = COUNT(*)` |
+| `between` | Value in range | `amount BETWEEN 0 AND 1000000` |
+| `regex_match` | Match pattern | `email RLIKE '^.*@.*$'` |
+| `in_set` | Value in allowed set | `status IN ('active', 'inactive')` |
+| `foreign_key` | Reference exists | `customer_id IN (SELECT id FROM customers)` |
+
+---
+
+## Magic Commands
+
+IPython magic commands for quick AI interactions in notebooks.
+
+### Available Commands
+
+```mermaid
+mindmap
+  root((Magic Commands))
+    %ai
+      Quick questions
+      Model selection
+      Streaming
+    %%ai_cell
+      Multi-line prompts
+      System instructions
+    %ai_explain
+      Code explanation
+      Detail levels
+    %%ai_optimize
+      SQL optimization
+    %%ai_generate
+      Code generation
+      Include tests
+    %ai_fix
+      Error debugging
+```
+
+### Using Magic Commands
+
+```python
+# Load the extension
+%load_ext ai_assistant.magic_commands
+
+# Quick question
+%ai What is Delta Lake?
+
+# Use specific model
+%ai -m gemini Explain Spark partitioning
+
+# Stream response
+%ai -s Describe medallion architecture
+
+# Multi-line prompt with system instruction
+%%ai_cell -s "You are a SQL expert"
+Optimize this query for a table with 500M rows:
+SELECT * FROM orders
+WHERE customer_id IN (SELECT id FROM customers WHERE region = 'US')
+
+# Explain code
+my_code = """
+def process_data(df):
+    return df.groupBy("category").agg(sum("amount"))
+"""
+%ai_explain -v my_code -d detailed
+
+# Optimize SQL
+%%ai_optimize
+SELECT o.*, c.name
+FROM orders o
+JOIN customers c ON o.customer_id = c.id
+WHERE o.date >= '2024-01-01'
+
+# Generate code with tests
+%%ai_generate -l python -t
+Create a function to validate email addresses and phone numbers
+
+# Debug an error
+error_msg = "AnalysisException: Table not found: sales.orders"
+%ai_fix -v error_msg
+
+# Get help
+%ai_help
+```
+
+---
+
+## Documentation Generator
+
+AI-powered documentation generation for code, schemas, and pipelines.
+
+### Documentation Flow
+
+```mermaid
+flowchart LR
+    subgraph Input["📥 Input"]
+        Code["Source Code"]
+        Schema["Table Schema"]
+        Pipeline["Pipeline Code"]
+    end
+
+    subgraph Generator["📝 Docs Generator"]
+        Analyze["Code Analysis"]
+        Generate["AI Generation"]
+        Format["Markdown Format"]
+    end
+
+    subgraph Output["📄 Output"]
+        Docstring["Docstrings"]
+        README["README"]
+        Dictionary["Data Dictionary"]
+    end
+
+    Code --> Analyze
+    Schema --> Analyze
+    Pipeline --> Analyze
+    Analyze --> Generate
+    Generate --> Format
+    Format --> Docstring
+    Format --> README
+    Format --> Dictionary
+
+    style Generator fill:#fff3e0
+```
+
+### Using Documentation Generator
+
+```python
+from ai_assistant import create_docs_generator, AIAssistant
+
+assistant = AIAssistant(secret_scope="ai-keys")
+docs_gen = create_docs_generator(assistant.claude, style="google")
+
+# Generate function documentation
+code = """
+def calculate_metrics(df, group_col, agg_col):
+    return df.groupBy(group_col).agg(
+        sum(agg_col).alias("total"),
+        avg(agg_col).alias("average"),
+        count("*").alias("count")
+    )
+"""
+func_doc = docs_gen.generate_function_docs(code)
+print(func_doc.to_docstring())
+
+# Generate schema documentation
+schema = [
+    {"name": "id", "type": "int"},
+    {"name": "customer_email", "type": "string"},
+    {"name": "order_total", "type": "decimal(10,2)"},
+    {"name": "created_at", "type": "timestamp"}
+]
+schema_docs = docs_gen.generate_schema_docs("analytics.orders", schema)
+print(schema_docs)
+
+# Generate data dictionary for multiple tables
+tables = [
+    {"name": "customers", "columns": [...]},
+    {"name": "orders", "columns": [...]},
+    {"name": "products", "columns": [...]}
+]
+data_dict = docs_gen.generate_data_dictionary(tables)
+print(data_dict)
+
+# Generate pipeline documentation
+pipeline_docs = docs_gen.generate_pipeline_docs(dlt_code, "sales_pipeline")
+print(pipeline_docs)
+
+# Add docstrings to existing code
+documented_code = docs_gen.add_docstrings_to_code(undocumented_code)
+print(documented_code)
+```
+
+---
+
+## dbt Integration
+
+Convert between DLT and dbt, generate dbt models, and create documentation.
+
+### dbt Integration Flow
+
+```mermaid
+flowchart TB
+    subgraph Input["📥 Input"]
+        DLT["DLT Pipeline"]
+        Desc["Description"]
+    end
+
+    subgraph Integration["🔄 dbt Integration"]
+        Convert["DLT ↔ dbt Converter"]
+        Generate["Model Generator"]
+        Schema["Schema Generator"]
+    end
+
+    subgraph Output["📤 dbt Output"]
+        Models["dbt Models"]
+        YAML["schema.yml"]
+        Tests["dbt Tests"]
+    end
+
+    DLT --> Convert
+    Desc --> Generate
+    Convert --> Models
+    Generate --> Models
+    Models --> Schema
+    Schema --> YAML
+    Schema --> Tests
+
+    style Integration fill:#fff3e0
+    style Output fill:#e8f5e9
+```
+
+### Using dbt Integration
+
+```python
+from ai_assistant import create_dbt_integration, AIAssistant
+
+assistant = AIAssistant(secret_scope="ai-keys")
+dbt = create_dbt_integration(assistant.claude, project_name="analytics")
+
+# Generate dbt model from description
+model = dbt.generate_model(
+    description="Daily sales summary with customer segments",
+    source_table="raw.sales",
+    materialization="table"
+)
+print(model.to_sql_file())
+# Output:
+# -- daily_sales_summary
+# -- Daily sales summary with customer segments
+#
+# {% config(
+#     materialized='table'
+# ) %}
+#
+# WITH sales AS (
+#     SELECT * FROM {{ source('raw', 'sales') }}
+# ),
+# ...
+
+# Convert DLT pipeline to dbt
+dlt_code = """
+@dlt.table
+def bronze_orders():
+    return spark.read.format("json").load("/raw/orders")
+
+@dlt.table
+def silver_orders():
+    return dlt.read("bronze_orders").dropna()
+"""
+dbt_models = dbt.convert_dlt_to_dbt(dlt_code)
+for model in dbt_models:
+    print(f"-- {model.name}.sql")
+    print(model.to_sql_file())
+
+# Convert dbt model to DLT
+dlt_code = dbt.convert_dbt_to_dlt(model)
+print(dlt_code)
+
+# Generate staging model (best practices)
+staging = dbt.generate_staging_model(
+    source_name="raw",
+    source_table="customers"
+)
+print(staging.to_sql_file())
+
+# Generate schema.yml
+from ai_assistant import DBTProject
+project = DBTProject(name="analytics", models=[model, staging])
+print(project.generate_schema_yml())
+```
+
+---
+
+## Security Guardrails
+
+Protect your AI interactions with SQL validation, PII detection, and rate limiting.
+
+### Guardrails Architecture
+
+```mermaid
+flowchart TB
+    subgraph Input["📥 User Input"]
+        Prompt["Prompt"]
+        UserID["User ID"]
+    end
+
+    subgraph Guardrails["🛡️ AI Guardrails"]
+        SQL["SQL Validator"]
+        PII["PII Detector"]
+        Rate["Rate Limiter"]
+        Audit["Audit Logger"]
+    end
+
+    subgraph Decision["🔀 Allow?"]
+        Check{{"Pass All?"}}
+    end
+
+    subgraph Output["📤 Output"]
+        Allow["✅ Allow Request"]
+        Block["❌ Block Request"]
+        Redact["🔒 Redact PII"]
+    end
+
+    Prompt --> SQL
+    Prompt --> PII
+    UserID --> Rate
+    SQL --> Check
+    PII --> Check
+    Rate --> Check
+    Check -->|Yes| Allow
+    Check -->|No| Block
+    Allow --> Audit
+    Block --> Audit
+    PII --> Redact
+
+    style Guardrails fill:#ffebee
+    style Decision fill:#fff3e0
+```
+
+### Using Guardrails
+
+```python
+from ai_assistant import create_guardrails, AIAssistant
+
+assistant = AIAssistant(secret_scope="ai-keys")
+
+# Create guardrails with all protections
+guardrails = create_guardrails(
+    ai_client=assistant.claude,
+    enable_sql_validation=True,
+    enable_pii_detection=True,
+    enable_rate_limiting=True,
+    rate_limit_rpm=60,           # 60 requests per minute
+    rate_limit_rph=1000,         # 1000 requests per hour
+    audit_log_path="/dbfs/logs/ai_audit.log"
+)
+
+# Safe generation (validates before calling AI)
+response = guardrails.generate(
+    prompt="Explain Delta Lake",
+    user_id="user_123"
+)
+
+# Validate prompt without generating
+validation = guardrails.validate_prompt(
+    prompt="DROP TABLE users; --",
+    user_id="user_123"
+)
+if not validation.is_allowed:
+    print(f"Blocked: {validation.reason}")
+    # Blocked: Dangerous SQL pattern detected: DROP TABLE
+
+# PII detection and redaction
+response = guardrails.generate(
+    prompt="Process this: john@example.com, SSN: 123-45-6789",
+    user_id="user_123",
+    redact_pii=True
+)
+# PII is redacted before sending to AI
+
+# Get rate limit status
+status = guardrails.rate_limiter.get_status("user_123")
+print(f"Remaining requests: {status['remaining_per_minute']}")
+
+# Get audit logs
+logs = guardrails.audit_logger.get_logs(user_id="user_123")
+security_events = guardrails.audit_logger.get_security_events()
+```
+
+### Security Features
+
+| Feature | Protection | Action |
+|---------|------------|--------|
+| **SQL Validator** | DROP, TRUNCATE, DELETE without WHERE, GRANT/REVOKE | Block request |
+| **PII Detector** | Email, Phone, SSN, Credit Card, IP Address | Detect & Redact |
+| **Rate Limiter** | Per-user request limits (minute/hour) | Block excess requests |
+| **Audit Logger** | All requests and security events | Log for compliance |
+
+---
+
 ## Security Best Practices
 
 ### Security Flow
@@ -820,7 +1833,27 @@ gemini-claude-databricks/
 │   ├── 📄 claude_client.py     # Anthropic Claude client
 │   ├── 📄 config.py            # Configuration management
 │   ├── 📄 exceptions.py        # Custom exceptions
-│   └── 📄 spark_utils.py       # Spark integration
+│   ├── 📄 spark_utils.py       # Spark integration
+│   ├── 📄 pipelines.py         # Pipeline generation
+│   ├── 📄 unity_catalog.py     # Unity Catalog integration
+│   ├── 📄 cache.py             # Semantic caching
+│   ├── 📄 rag.py               # RAG pipeline
+│   ├── 📄 tracking.py          # MLflow tracking
+│   ├── 📄 data_quality.py      # Data quality analyzer
+│   ├── 📄 magic_commands.py    # IPython magic commands
+│   ├── 📄 docs_generator.py    # Documentation generator
+│   ├── 📄 dbt_integration.py   # dbt integration
+│   ├── 📄 guardrails.py        # Security guardrails
+│   ├── 📁 agents/              # AI Agents
+│   │   ├── 📄 __init__.py
+│   │   ├── 📄 base.py          # Base agent classes
+│   │   ├── 📄 tools.py         # Agent tools
+│   │   ├── 📄 data_analyst.py  # Data analyst agent
+│   │   └── 📄 data_engineer.py # Data engineer agent
+│   └── 📁 prompts/             # Prompt templates
+│       ├── 📄 __init__.py
+│       ├── 📄 templates.py     # Template infrastructure
+│       └── 📄 data_engineering.py # Built-in templates
 ├── 📁 examples/
 │   ├── 📄 01_basic_usage.py    # Basic examples
 │   └── 📄 02_code_generation.py # Code generation
@@ -829,7 +1862,17 @@ gemini-claude-databricks/
 ├── 📁 docs/
 │   └── 📄 api.md               # API documentation
 ├── 📁 tests/
-│   └── 📄 test_ai_assistant.py # Unit tests
+│   ├── 📄 test_ai_assistant.py # Core tests
+│   ├── 📄 test_cache.py        # Cache tests
+│   ├── 📄 test_rag.py          # RAG tests
+│   ├── 📄 test_agents.py       # Agents tests
+│   ├── 📄 test_tracking.py     # Tracking tests
+│   ├── 📄 test_prompts.py      # Prompts tests
+│   ├── 📄 test_data_quality.py # Data quality tests
+│   ├── 📄 test_magic_commands.py # Magic commands tests
+│   ├── 📄 test_docs_generator.py # Docs generator tests
+│   ├── 📄 test_dbt_integration.py # dbt tests
+│   └── 📄 test_guardrails.py   # Guardrails tests
 ├── 📄 README.md                # This file
 ├── 📄 requirements.txt         # Dependencies
 ├── 📄 setup.py                 # Package setup
